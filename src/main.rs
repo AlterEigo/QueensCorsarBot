@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use serenity::{
     prelude::*,
     model::prelude::*,
@@ -26,9 +28,10 @@ async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
         .build();
     msg.channel_id.say(&ctx.http, response).await?;
 
-    msg.author.direct_message(&ctx.http, |m| {
-        m.content("Ну ка улыбнись! Личка работает. Бот будет отправлять правила личным сообщением и уточнять ник здесь =)")
-    }).await?;
+    let private = msg.author.create_dm_channel(&ctx.http).await?;
+    private.send_message(&ctx.http, |m| {
+        m.content("Здесь могла бы быть ваша реклама")
+    }).await.expect("Couldn't send the direct message");
 
     Ok(())
 }
@@ -44,6 +47,15 @@ impl EventHandler for Handler {
     // fn message(&self, ctx: Context, msg: Message) {
         // unimplemented!();
     // }
+    
+    async fn message(&self, ctx: Context, new_message: Message) {
+
+        println!("Received message from: {}", new_message.author.name);
+        println!("{}", new_message.content);
+        if let Some(id) = new_message.guild_id {
+            println!("{}", id);
+        }
+    }
     
     async fn guild_member_addition(&self, ctx: Context, new_member: Member) {
         let response = MessageBuilder::new()
