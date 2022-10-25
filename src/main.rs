@@ -2,7 +2,8 @@ use serenity::{
     prelude::*,
     model::prelude::*,
     framework::StandardFramework, Client,
-    framework::standard::{macros::{command,group}, CommandResult}
+    framework::standard::{macros::{command,group}, CommandResult},
+    utils::MessageBuilder
 };
 
 use serenity::async_trait;
@@ -14,8 +15,22 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
+#[command]
+async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
+    let user = ctx.http.get_current_user().await?;
+
+    let response = MessageBuilder::new()
+        .push("Отправляю тебе свод правил, ")
+        .push_bold_safe(&msg.author.name)
+        .push("!")
+        .build();
+    msg.channel_id.say(&ctx.http, response).await?;
+
+    Ok(())
+}
+
 #[group]
-#[commands(ping)]
+#[commands(ping,rules)]
 struct General;
 
 struct Handler;
@@ -25,6 +40,10 @@ impl EventHandler for Handler {
     // fn message(&self, ctx: Context, msg: Message) {
         // unimplemented!();
     // }
+    
+    async fn guild_member_addition(&self, _ctx: Context, _new_member: Member) {
+        unimplemented!()
+    }
 }
 
 #[tokio::main]
