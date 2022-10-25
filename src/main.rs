@@ -26,6 +26,10 @@ async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
         .build();
     msg.channel_id.say(&ctx.http, response).await?;
 
+    msg.author.direct_message(&ctx.http, |m| {
+        m.content("Ну ка улыбнись! Личка работает. Бот будет отправлять правила личным сообщением и уточнять ник здесь =)")
+    }).await?;
+
     Ok(())
 }
 
@@ -41,8 +45,15 @@ impl EventHandler for Handler {
         // unimplemented!();
     // }
     
-    async fn guild_member_addition(&self, _ctx: Context, _new_member: Member) {
-        unimplemented!()
+    async fn guild_member_addition(&self, ctx: Context, new_member: Member) {
+        let response = MessageBuilder::new()
+            .push("Ничоси, ")
+            .push_bold_safe(new_member.display_name())
+            .push_line(" присоединился! О.О")
+            .push_line("Ну здарова, чо!")
+            .build();
+        let defalt_channel = new_member.default_channel(&ctx.cache).expect("Couldn't retrieve the default channel!");
+        let msg = defalt_channel.say(&ctx.http, response);
     }
 }
 
