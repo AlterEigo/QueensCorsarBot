@@ -13,13 +13,13 @@ features = ["full"]
 
 [dependencies.serenity]
 version = "0.11.5"
-default-features = false
-features = [
-  "builder",
-  "cache",
-  "framework",
-  "model",
-  "standard_framework", 
-  "rustls_backend",
-  "utils",
-]
+# default-features = false
+# features = [
+  # "builder",
+  # "cache",
+  # "framework",
+  # "model",
+  # "standard_framework",
+  # "rustls_backend",
+  # "utils",
+# ]
