@@ -34,7 +34,9 @@ async fn main() -> Result<(), ()> {
         .configure(|c| c.prefix("!"))
         .group(&GENERAL_GROUP);
     
-    let intents = GatewayIntents::non_privileged() | GatewayIntents::MESSAGE_CONTENT;
+    let intents = GatewayIntents::non_privileged() |
+        GatewayIntents::MESSAGE_CONTENT |
+        GatewayIntents::GUILD_MEMBERS;
     let mut client = Client::builder(token, intents)
         .event_handler(Handler)
         .framework(framework)
