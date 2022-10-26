@@ -1,5 +1,6 @@
-use std::any::Any;
+use serde::{Serialize,Deserialize};
 
+use std::collections::HashMap;
 use serenity::{
     prelude::*,
     model::prelude::*,
@@ -9,6 +10,65 @@ use serenity::{
 };
 
 use serenity::async_trait;
+
+#[derive(serde::Serialize,serde::Deserialize,Debug,Clone,Default)]
+struct RegistrationInfos {
+    user_id: u64,
+    user_discriminator: u16,
+    user_name: String,
+    accepted_rules: bool,
+    nickname: Option<String>
+}
+
+impl RegistrationInfos {
+    fn read_registry() -> HashMap<u64, RegistrationInfos> {
+        unimplemented!()
+    }
+
+    fn write_registry(registry: &HashMap<u64, RegistrationInfos>) {
+        unimplemented!()
+    }
+
+    pub fn update_or_insert(infos: &RegistrationInfos) -> Result<(), (u16, &'static str)> {
+        unimplemented!()
+    }
+
+    pub fn get_entry(id: u64) -> Option<RegistrationInfos> {
+        unimplemented!()
+    }
+
+    pub fn user_met(id: u64) -> bool {
+        let records = RegistrationInfos::read_registry();
+        records.contains_key(&id)
+    }
+
+    pub fn user_accepted_rules(id: u64) -> bool {
+        let records = RegistrationInfos::read_registry();
+        if let Some(infos) = records.get(&id) {
+            infos.accepted_rules
+        } else {
+            false
+        }
+    }
+
+    pub fn set_rules_accepted(id: u64, value: bool) -> Result<RegistrationInfos, (u16, &'static str)> {
+        let infos = match RegistrationInfos::get_entry(id) {
+            Some(r) => RegistrationInfos { accepted_rules: value, ..r.clone() },
+            None => return Err((1, "id not found"))
+        };
+        RegistrationInfos::update_or_insert(&infos)?;
+        Ok(infos)
+    }
+
+    pub fn set_nickname(id: u64, nickname: &str) -> Result<RegistrationInfos, (u16, &'static str)> {
+        let infos = match RegistrationInfos::get_entry(id) {
+            Some(r) => RegistrationInfos { nickname: Some(String::from(nickname)), ..r.clone() },
+            None => return Err((1, "id not found"))
+        };
+        RegistrationInfos::update_or_insert(&infos)?;
+        Ok(infos)
+    }
+}
 
 #[command]
 async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
@@ -27,6 +87,14 @@ async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
         .push("!")
         .build();
     msg.channel_id.say(&ctx.http, response).await?;
+
+    let infos = RegistrationInfos {
+        user_id: user.id.0,
+        user_discriminator: user.discriminator,
+        user_name: user.name.clone(),
+        accepted_rules: false,
+        nickname: None
+    };
 
     let private = msg.author.create_dm_channel(&ctx.http).await?;
     private.send_message(&ctx.http, |m| {
