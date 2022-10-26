@@ -70,7 +70,7 @@ impl EventHandler for Handler {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), ()> {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let token = std::env::var("QUEENSCORSAR_TOKEN").expect("Couldn't fetch the API token from the environment");
     let framework = StandardFramework::new()
         .configure(|c| c.prefix("!"))
