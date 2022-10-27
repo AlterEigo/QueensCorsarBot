@@ -183,7 +183,8 @@ impl EventHandler for Handler {
     }
 
     async fn guild_member_removal(&self, ctx: Context, _guild_id: GuildId, user: User, member_data: Option<Member>) {
-
+        RegistrationInfos::remove_entry(user.id.0);
+        println!("User with name '{}' (id: {}) has left the server. All associated data has been erased.", user.name, user.id.0);
     }
     
     async fn guild_member_addition(&self, ctx: Context, new_member: Member) {
