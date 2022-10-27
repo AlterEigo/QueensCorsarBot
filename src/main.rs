@@ -22,6 +22,7 @@ lazy_static! {
         if !path.exists() {
             let mut file = File::create(path).unwrap();
             write!(file, "{{}}").unwrap();
+            file.sync_all().unwrap();
         }
         let registry = std::fs::read_to_string(REGISTRY_PATH).expect("Could not read the registry");
         let registry: HashMap<u64, RegistrationInfos> = serde_json::from_str(&registry).expect("Registry is corrupted (invalid json)");
@@ -48,8 +49,8 @@ impl RegistrationInfos {
             records.insert(infos.user_id, infos.clone());
         }
         let serialized = serde_json::to_string(&*records).unwrap();
-        let mut registry = File::open(REGISTRY_PATH).unwrap();
-        write!(registry, "{}", serialized).unwrap();
+        let mut registry = File::create(REGISTRY_PATH).unwrap();
+        registry.write_all(&serialized.into_bytes()).unwrap();
         Ok(())
     }
 
