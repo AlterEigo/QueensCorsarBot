@@ -18,6 +18,11 @@ use serenity::async_trait;
 static REGISTRY_PATH: &'static str = "registry.json";
 lazy_static! {
     static ref REGISTRY: RwLock<HashMap<u64, RegistrationInfos>> = {
+        let path = std::path::Path::new(REGISTRY_PATH);
+        if !path.exists() {
+            let mut file = File::create(path).unwrap();
+            write!(file, "{{}}").unwrap();
+        }
         let registry = std::fs::read_to_string(REGISTRY_PATH).expect("Could not read the registry");
         let registry: HashMap<u64, RegistrationInfos> = serde_json::from_str(&registry).expect("Registry is corrupted (invalid json)");
 
@@ -111,6 +116,8 @@ async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
         accepted_rules: false,
         nickname: None
     };
+
+    RegistrationInfos::update_or_insert(&infos).unwrap();
 
     let private = msg.author.create_dm_channel(&ctx.http).await?;
     private.send_message(&ctx.http, |m| {
