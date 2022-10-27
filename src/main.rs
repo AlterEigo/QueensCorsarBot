@@ -48,15 +48,36 @@ impl RegistrationInfos {
         } else {
             records.insert(infos.user_id, infos.clone());
         }
-        let serialized = serde_json::to_string(&*records).unwrap();
-        let mut registry = File::create(REGISTRY_PATH).unwrap();
-        registry.write_all(&serialized.into_bytes()).unwrap();
+        RegistrationInfos::save_registry(&*records).unwrap();
         Ok(())
+    }
+
+    fn save_registry(records: &HashMap<u64, RegistrationInfos>) -> Result<(), (u16, &'static str)> {
+        let serialized = match serde_json::to_string(records) {
+            Ok(v) => v,
+            Err(_) => return Err((62, "Failed to serialize registry data to JSON"))
+        };
+
+        let mut registry = match File::create(REGISTRY_PATH) {
+            Ok(v) => v,
+            Err(_) => return Err((63, "Failed to create or open the registry file for writing"))
+        };
+     
+        match registry.write_all(&serialized.into_bytes()) {
+            Ok(_) => Ok(()),
+            Err(_) => Err((64, "Failed to write the registry into the file"))
+        }
     }
 
     pub fn get_entry(id: u64) -> Option<RegistrationInfos> {
         let records = REGISTRY.read().unwrap();
         records.get(&id).cloned()
+    }
+
+    pub fn remove_entry(id: u64) {
+        let mut records = REGISTRY.write().unwrap();
+        records.remove_entry(&id);
+        RegistrationInfos::save_registry(&*records).unwrap();
     }
 
     pub fn user_met(id: u64) -> bool {
@@ -141,12 +162,28 @@ impl EventHandler for Handler {
     // }
     
     async fn message(&self, ctx: Context, new_message: Message) {
+        let user = &new_message.author;
 
         println!("Received message from: {}", new_message.author.name);
-        println!("{}", new_message.content);
-        if let Some(id) = new_message.guild_id {
-            println!("{}", id);
+        if let Some(guild) = new_message.guild(&ctx.cache) {
+            println!("(From group: {})", guild.name);
+        } else {
+
+            // Is the player still present in the known guilds
+            // => Player will not be present in the registry
+
+            // Have we encountered this player before
+            //
+            // Did the player accept the rules
+            //
+            // Do the player have a nickname set
+            println!("(Direct message)")
         }
+        println!("Contents: {}", new_message.content);
+    }
+
+    async fn guild_member_removal(&self, ctx: Context, _guild_id: GuildId, user: User, member_data: Option<Member>) {
+
     }
     
     async fn guild_member_addition(&self, ctx: Context, new_member: Member) {
