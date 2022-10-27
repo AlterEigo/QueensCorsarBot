@@ -122,7 +122,7 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
 
 #[command]
 async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
-    let user = ctx.http.get_current_user().await?;
+    let user = &msg.author;
 
     let response = MessageBuilder::new()
         .push("Отправляю тебе свод правил, ")
@@ -188,14 +188,30 @@ impl EventHandler for Handler {
     }
     
     async fn guild_member_addition(&self, ctx: Context, new_member: Member) {
-        let response = MessageBuilder::new()
-            .push("Ничоси, ")
-            .push_bold_safe(new_member.display_name())
-            .push_line(" присоединился! О.О")
-            .push_line("Ну здарова, чо!")
+        // let response = MessageBuilder::new()
+            // .push("Ничоси, ")
+            // .push_bold_safe(new_member.display_name())
+            // .push_line(" присоединился! О.О")
+            // .push_line("Ну здарова, чо!")
+            // .build();
+        // let defalt_channel = new_member.default_channel(&ctx.cache).expect("Couldn't retrieve the default channel!");
+        // let msg = defalt_channel.say(&ctx.http, response);
+        
+        let greeting = MessageBuilder::new()
+            .push("Пссст! Есть тут кто? Ало-о-о? Проверка связи!")
             .build();
-        let defalt_channel = new_member.default_channel(&ctx.cache).expect("Couldn't retrieve the default channel!");
-        let msg = defalt_channel.say(&ctx.http, response);
+        new_member.user.direct_message(&ctx.http, |m| {
+            m.content(&greeting)
+        }).await.expect("Could not send the private message");
+
+        let infos = RegistrationInfos {
+            user_id: new_member.user.id.0,
+            user_name: new_member.user.name.clone(),
+            user_discriminator: new_member.user.discriminator,
+            accepted_rules: false,
+            nickname: None
+        };
+        RegistrationInfos::update_or_insert(&infos).unwrap();
     }
 }
 
