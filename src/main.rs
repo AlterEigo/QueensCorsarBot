@@ -9,7 +9,21 @@ use serenity::{
     utils::MessageBuilder
 };
 
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use std::fs::File;
+use std::io::{BufReader,BufRead,Write,Error};
 use serenity::async_trait;
+
+lazy_static! {
+    static ref REGISTRY: RwLock<HashMap<u64, RegistrationInfos>> = {
+        let registry_path = "registry.json";
+        let registry = std::fs::read_to_string(registry_path).expect("Could not read the registry");
+        let registry: HashMap<u64, RegistrationInfos> = serde_json::from_str(&registry).expect("Registry is corrupted (invalid json)");
+
+        RwLock::new(registry)
+    };
+}
 
 #[derive(serde::Serialize,serde::Deserialize,Debug,Clone,Default)]
 struct RegistrationInfos {
