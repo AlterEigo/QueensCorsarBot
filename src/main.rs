@@ -1,6 +1,6 @@
 use serde::{Serialize,Deserialize};
 
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::write};
 use serenity::{
     prelude::*,
     model::prelude::*,
@@ -10,15 +10,15 @@ use serenity::{
 };
 
 use lazy_static::lazy_static;
-use std::sync::Mutex;
+use std::sync::RwLock;
 use std::fs::File;
 use std::io::{BufReader,BufRead,Write,Error};
 use serenity::async_trait;
 
+static REGISTRY_PATH: &'static str = "registry.json";
 lazy_static! {
     static ref REGISTRY: RwLock<HashMap<u64, RegistrationInfos>> = {
-        let registry_path = "registry.json";
-        let registry = std::fs::read_to_string(registry_path).expect("Could not read the registry");
+        let registry = std::fs::read_to_string(REGISTRY_PATH).expect("Could not read the registry");
         let registry: HashMap<u64, RegistrationInfos> = serde_json::from_str(&registry).expect("Registry is corrupted (invalid json)");
 
         RwLock::new(registry)
@@ -35,29 +35,31 @@ struct RegistrationInfos {
 }
 
 impl RegistrationInfos {
-    fn read_registry() -> HashMap<u64, RegistrationInfos> {
-        unimplemented!()
-    }
-
-    fn write_registry(registry: &HashMap<u64, RegistrationInfos>) {
-        unimplemented!()
-    }
-
     pub fn update_or_insert(infos: &RegistrationInfos) -> Result<(), (u16, &'static str)> {
-        unimplemented!()
+        let mut records = REGISTRY.write().unwrap();
+        if records.contains_key(&infos.user_id) {
+            *records.get_mut(&infos.user_id).unwrap() = infos.clone();
+        } else {
+            records.insert(infos.user_id, infos.clone());
+        }
+        let serialized = serde_json::to_string(&*records).unwrap();
+        let mut registry = File::open(REGISTRY_PATH).unwrap();
+        write!(registry, "{}", serialized).unwrap();
+        Ok(())
     }
 
     pub fn get_entry(id: u64) -> Option<RegistrationInfos> {
-        unimplemented!()
+        let records = REGISTRY.read().unwrap();
+        records.get(&id).cloned()
     }
 
     pub fn user_met(id: u64) -> bool {
-        let records = RegistrationInfos::read_registry();
+        let records = REGISTRY.read().unwrap();
         records.contains_key(&id)
     }
 
     pub fn user_accepted_rules(id: u64) -> bool {
-        let records = RegistrationInfos::read_registry();
+        let records = REGISTRY.read().unwrap();
         if let Some(infos) = records.get(&id) {
             infos.accepted_rules
         } else {
