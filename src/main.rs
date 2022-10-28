@@ -160,24 +160,36 @@ impl EventHandler for Handler {
     // fn message(&self, ctx: Context, msg: Message) {
         // unimplemented!();
     // }
+
+    async fn ready(&self, ctx: Context, data_about_bot: Ready) {
+        // Synchronize the registry with present players
+        println!("Ready event fired!");
+    }
+
+    async fn resume(&self, ctx: Context, _arg2: ResumedEvent) {
+        println!("Resume event fired!");
+    }
     
     async fn message(&self, ctx: Context, new_message: Message) {
         let user = &new_message.author;
 
-        println!("Received message from: {}", new_message.author.name);
         if let Some(guild) = new_message.guild(&ctx.cache) {
             println!("(From group: {})", guild.name);
         } else {
-
+            println!("Received message from: {}", new_message.author.name);
             // Is the player still present in the known guilds
             // => Player will not be present in the registry
 
             // Have we encountered this player before
-            //
+            if !RegistrationInfos::user_met(user.id.0) {
+                // Check if the player is still present on the server
+                // true => create a record
+                // false => deny request
+            }
+
             // Did the player accept the rules
-            //
+
             // Do the player have a nickname set
-            println!("(Direct message)")
         }
         println!("Contents: {}", new_message.content);
     }
