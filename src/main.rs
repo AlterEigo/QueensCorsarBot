@@ -9,17 +9,27 @@ use serenity::{
     utils::MessageBuilder
 };
 
-use lazy_static::lazy_static;
 use std::sync::RwLock;
 use std::fs::File;
 use std::io::{BufReader,BufRead,Write,Error};
 use serenity::async_trait;
+
+type UResult<T = ()> = Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
 #[command]
 async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     msg.channel_id.say(&ctx.http, "Pong!").await?;
 
     Ok(())
+}
+
+async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> UResult {
+    let private = user.create_dm_channel(&ctx.http).await?;
+    private.send_message(&ctx.http, |m| {
+        m.content("Здесь могла бы быть ваша реклама")
+    }).await.expect("Couldn't send the direct message");
+
+    todo!()
 }
 
 #[command]
@@ -33,20 +43,42 @@ async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
         .build();
     msg.channel_id.say(&ctx.http, response).await?;
 
-    let private = msg.author.create_dm_channel(&ctx.http).await?;
-    private.send_message(&ctx.http, |m| {
-        m.content("Здесь могла бы быть ваша реклама")
-    }).await.expect("Couldn't send the direct message");
-
-    let reply = user.await_reply(&ctx.shard)
-        .timeout(Duration::new(20, 0))
-        .await;
-
-    if let Some(msg) = reply {
-
-    }
+    start_signup_session(&ctx, &user, &msg.guild_id.unwrap()).await?;
 
     Ok(())
+}
+
+struct Session;
+impl TypeMapKey for Session {
+    type Value = HashMap<UserId, bool>;
+}
+
+async fn push_session(ctx: &Context, uid: UserId, value: bool) {
+    let mut data = ctx.data.write().await;
+    let sessions = data.entry::<Session>().or_insert(HashMap::new());
+    let entry = sessions.entry(uid).or_insert(true);
+    *entry = value;
+}
+
+async fn pop_session(ctx: &Context, uid: UserId) {
+    let mut data = ctx.data.write().await;
+    let sessions = data.entry::<Session>().or_insert(HashMap::new());
+    sessions.remove_entry(&uid);
+}
+
+async fn engage_registration(ctx: Context, user: &User) -> Result<Context, Box<dyn std::error::Error>> {
+    let greeting = MessageBuilder::new()
+        .push("Привет! Какой твой ник в игре?")
+        .build();
+    user.direct_message(&ctx.http, |m| {
+        m.content(&greeting)
+    }).await?;
+
+    let reply = user.await_reply(&ctx.shard)
+        .timeout(Duration::new(60 * 60, 0))
+        .await.ok_or("Did not wait long enough")?;
+
+    Ok(ctx)
 }
 
 #[group]
@@ -64,23 +96,11 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, data_about_bot: Ready) {
         // Synchronize the registry with present players
         println!("Ready event fired!");
-        todo!()
+        // todo!()
     }
 
     async fn resume(&self, ctx: Context, _arg2: ResumedEvent) {
         println!("Resume event fired!");
-    }
-    
-    async fn message(&self, ctx: Context, new_message: Message) {
-        let user = &new_message.author;
-
-        if let Some(guild) = new_message.guild(&ctx.cache) {
-            println!("(From group: {})", guild.name);
-        } else {
-            println!("Received message from: {}", new_message.author.name);
-            todo!();
-        }
-        println!("Contents: {}", new_message.content);
     }
 
     async fn guild_member_removal(&self, ctx: Context, _guild_id: GuildId, user: User, member_data: Option<Member>) {
@@ -98,7 +118,7 @@ impl EventHandler for Handler {
         // let msg = defalt_channel.say(&ctx.http, response);
         
         let greeting = MessageBuilder::new()
-            .push("Пссст! Есть тут кто? Ало-о-о? Проверка связи!")
+            .push("Привет! Какой твой ник в игре?")
             .build();
         new_member.user.direct_message(&ctx.http, |m| {
             m.content(&greeting)
