@@ -33,7 +33,8 @@ async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> URes
 
         let reply = user.await_reply(&ctx.shard)
             .timeout(Duration::new(60 * 2, 0))
-            .await;
+            .await
+            .map(|msg| msg.content.clone());
 
         // 1. Проверяем на наличие в гильдии
 
@@ -53,7 +54,8 @@ async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> URes
 
         let reply = user.await_reply(&ctx.shard)
             .timeout(Duration::new(60 * 2, 0))
-            .await;
+            .await
+            .map(|msg| msg.content.clone());
 
         if reply.is_none() {
             private.send_message(&ctx.http, |m| {
@@ -64,7 +66,7 @@ async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> URes
 
         // 1. Проверяем наличие в гильдии
 
-        let reply = &reply.unwrap().content;
+        let reply = reply.unwrap();
 
         let role_id: u64 = 1036571268809498654;
         ctx.http.add_member_role(gid.0, user.id.0, role_id, Some("Автоматическое назначение роли")).await?;
@@ -136,7 +138,7 @@ impl EventHandler for Handler {
     }
 
     async fn guild_member_removal(&self, ctx: Context, _guild_id: GuildId, user: User, member_data: Option<Member>) {
-        todo!()
+        // todo!()
     }
     
     async fn guild_member_addition(&self, ctx: Context, new_member: Member) {
@@ -149,12 +151,17 @@ impl EventHandler for Handler {
         // let defalt_channel = new_member.default_channel(&ctx.cache).expect("Couldn't retrieve the default channel!");
         // let msg = defalt_channel.say(&ctx.http, response);
         
-        let greeting = MessageBuilder::new()
-            .push("Привет! Какой твой ник в игре?")
-            .build();
-        new_member.user.direct_message(&ctx.http, |m| {
-            m.content(&greeting)
-        }).await.expect("Could not send the private message");
+        // let greeting = MessageBuilder::new()
+            // .push("Привет! Какой твой ник в игре?")
+            // .build();
+        // new_member.user.direct_message(&ctx.http, |m| {
+            // m.content(&greeting)
+        // }).await.expect("Could not send the private message");
+
+        match start_signup_session(&ctx, &new_member.user, &new_member.guild_id).await {
+            Err(contents) => { panic!("Something went wrong! Reason: {}", contents) },
+            _ => ()
+        };
     }
 }
 
