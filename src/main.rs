@@ -113,21 +113,6 @@ async fn pop_session(ctx: &Context, uid: UserId) {
     sessions.remove_entry(&uid);
 }
 
-async fn engage_registration(ctx: Context, user: &User) -> Result<Context, Box<dyn std::error::Error>> {
-    let greeting = MessageBuilder::new()
-        .push("Привет! Какой твой ник в игре?")
-        .build();
-    user.direct_message(&ctx.http, |m| {
-        m.content(&greeting)
-    }).await?;
-
-    let reply = user.await_reply(&ctx.shard)
-        .timeout(Duration::new(60 * 60, 0))
-        .await.ok_or("Did not wait long enough")?;
-
-    Ok(ctx)
-}
-
 #[group]
 #[commands(ping,rules)]
 struct General;
