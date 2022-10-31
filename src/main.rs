@@ -25,11 +25,58 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
 
 async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> UResult {
     let private = user.create_dm_channel(&ctx.http).await?;
-    private.send_message(&ctx.http, |m| {
-        m.content("Здесь могла бы быть ваша реклама")
-    }).await.expect("Couldn't send the direct message");
+    loop {
+        private.send_message(&ctx.http, |m| {
+            m.content("Тут типа правила")
+             .content("Согласны ли вы с правилами?")
+        }).await?;
 
-    todo!()
+        let reply = user.await_reply(&ctx.shard)
+            .timeout(Duration::new(60 * 2, 0))
+            .await;
+
+        // 1. Проверяем на наличие в гильдии
+
+        if reply.is_none() {
+            private.send_message(&ctx.http, |m| {
+                m.content("Упс! Время истекло. Попробуем еще раз?")
+            }).await?;
+            continue;
+        }
+
+        // 1. Проверяем наличие в гильдии
+        // 2. Проверка значения ответа
+
+        private.send_message(&ctx.http, |m| {
+            m.content("Отлично! Позволь узнать твой ник в игре?")
+        }).await?;
+
+        let reply = user.await_reply(&ctx.shard)
+            .timeout(Duration::new(60 * 2, 0))
+            .await;
+
+        if reply.is_none() {
+            private.send_message(&ctx.http, |m| {
+                m.content("Упс! Время истекло. Попробуем еще раз?")
+            }).await?;
+            continue;
+        }
+
+        // 1. Проверяем наличие в гильдии
+
+        let reply = &reply.unwrap().content;
+
+        let role_id: u64 = 1036571268809498654;
+        ctx.http.add_member_role(gid.0, user.id.0, role_id, Some("Автоматическое назначение роли")).await?;
+        ctx.http.get_guild(gid.0).await?
+            .edit_member(&ctx.http, user.id.0, |member| {
+                member.nickname(reply)
+            }).await?;
+
+        break;
+    }
+
+    Ok(())
 }
 
 #[command]
