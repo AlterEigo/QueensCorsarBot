@@ -10,6 +10,7 @@ use serenity::{
 
 use crate::core::start_signup_session;
 
+/// Команда проверки связи с ботом
 #[command]
 async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     msg.channel_id.say(&ctx.http, "Pong!").await?;
@@ -17,6 +18,7 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
+/// Команда запроса правил сервера и запуска процесса регистрации
 #[command]
 async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
     let user = &msg.author;
@@ -33,6 +35,7 @@ async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
+/// Структура с основными командами бота
 #[group]
 #[commands(ping, rules)]
 struct General;
