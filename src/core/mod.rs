@@ -19,7 +19,8 @@ fn load_guild_rules() -> UResult<String> {
 }
 
 pub async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> UResult {
-    let msg = MessageBuilder::new().push("Тут типа свод правил").build();
+    let rules = load_guild_rules()?;
+    let msg = MessageBuilder::new().push_safe(rules).build();
     send_privately(ctx, user, &msg).await?;
 
     let msg = MessageBuilder::new()
