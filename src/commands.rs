@@ -30,7 +30,10 @@ async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
         .build();
     msg.channel_id.say(&ctx.http, response).await?;
 
-    start_signup_session(&ctx, &user, &msg.guild_id.unwrap()).await?;
+    match start_signup_session(&ctx, &user, &msg.guild_id.unwrap()).await {
+        Err(why) => println!("[rules]: Something went wrong: {:?}", why),
+        _ => ()
+    };
 
     Ok(())
 }
