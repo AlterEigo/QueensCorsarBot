@@ -78,67 +78,66 @@ async fn user_is_in_guild(ctx: &Context, user: &User, gid: &GuildId) -> UResult<
 }
 
 async fn send_privately(ctx: &Context, user: &User, msg: &str) -> UResult {
-    todo!()
+    let private = user.create_dm_channel(&ctx.http).await?;
+    private.send_message(&ctx.http, |m| {
+        m.content(msg)
+    }).await?;
+    Ok(())
 }
 
 async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> UResult {
-    let private = user.create_dm_channel(&ctx.http).await?;
+    let msg = MessageBuilder::new().push("Тут типа свод правил").build();
+    send_privately(ctx, user, &msg).await?;
+
+    let msg = MessageBuilder::new()
+        .push_bold_line_safe("Принимаете ли вы свод правил гильдии? (Да/Нет)")
+        .build();
     loop {
-        let msg = MessageBuilder::new().push("Тут типа свод правил").build();
-        send_privately(ctx, user, &msg).await?;
-
-        let msg = MessageBuilder::new()
-            .push_bold_line_safe("Принимаете ли вы свод правил гильдии? (Да/Нет)")
-            .build();
-        loop {
-            if !user_is_in_guild(ctx, user, gid).await? {
-                send_privately(ctx, user, "Увы, вы больше не состоите в группе гильдии!").await?;
-                return Err(BotError::NotInGuild.into());
-            }
-            match query_from_user(ctx, user, &msg)
-                .await
-                .map(|m| m.to_lowercase())
-            {
-                Ok(r) => match r.as_str() {
-                    "да" | "+" | "ок" | "yes" | "y" => break,
-                    "нет" | "no" | "-" | "n" => return Err(BotError::RulesRefused.into()),
-                    _ => {
-                        send_privately(ctx, user, "Вы можете ответить только 'Да' или 'Нет'").await?;
-                        continue;
-                    }
-                },
-                Err(_) => continue,
-            }
+        if !user_is_in_guild(ctx, user, gid).await? {
+            send_privately(ctx, user, "Увы, вы больше не состоите в группе гильдии!").await?;
+            return Err(BotError::NotInGuild.into());
         }
-
-        let nickname = loop {
-            if !user_is_in_guild(ctx, user, gid).await? {
-                send_privately(ctx, user, "Увы, вы больше не состоите в группе гильдии!").await?;
-                return Err(BotError::NotInGuild.into());
-            }
-            match query_from_user(ctx, user, &msg).await {
-                Ok(r) => break r,
-                Err(_) => continue,
-            }
-        };
-
-        let role_id: u64 = 1036571268809498654;
-        ctx.http
-            .add_member_role(
-                gid.0,
-                user.id.0,
-                role_id,
-                Some("Автоматическое назначение роли"),
-            )
-            .await?;
-        ctx.http
-            .get_guild(gid.0)
-            .await?
-            .edit_member(&ctx.http, user.id.0, |member| member.nickname(nickname))
-            .await?;
-
-        break;
+        match query_from_user(ctx, user, &msg)
+            .await
+            .map(|m| m.to_lowercase())
+        {
+            Ok(r) => match r.as_str() {
+                "да" | "+" | "ок" | "yes" | "y" => break,
+                "нет" | "no" | "-" | "n" => return Err(BotError::RulesRefused.into()),
+                _ => {
+                    send_privately(ctx, user, "Вы можете ответить только 'Да' или 'Нет'").await?;
+                    continue;
+                }
+            },
+            Err(_) => continue,
+        }
     }
+
+    let nickname = loop {
+        if !user_is_in_guild(ctx, user, gid).await? {
+            send_privately(ctx, user, "Увы, вы больше не состоите в группе гильдии!").await?;
+            return Err(BotError::NotInGuild.into());
+        }
+        match query_from_user(ctx, user, &msg).await {
+            Ok(r) => break r,
+            Err(_) => continue,
+        }
+    };
+
+    let role_id: u64 = 1036571268809498654;
+    ctx.http
+        .add_member_role(
+            gid.0,
+            user.id.0,
+            role_id,
+            Some("Автоматическое назначение роли"),
+        )
+        .await?;
+    ctx.http
+        .get_guild(gid.0)
+        .await?
+        .edit_member(&ctx.http, user.id.0, |member| member.nickname(nickname))
+        .await?;
 
     Ok(())
 }
