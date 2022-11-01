@@ -1,12 +1,12 @@
 use serde::{Serialize,Deserialize};
 
-use std::{collections::HashMap, fmt::write, time::Duration};
+use std::{collections::HashMap, fmt::{write, Display}, time::Duration};
 use serenity::{
     prelude::*,
     model::prelude::*,
     framework::StandardFramework, Client,
     framework::standard::{macros::{command,group}, CommandResult},
-    utils::MessageBuilder
+    utils::MessageBuilder, http
 };
 
 use std::sync::RwLock;
@@ -17,11 +17,44 @@ use serenity::async_trait;
 
 type UResult<T = ()> = Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
+#[derive(Debug)]
+enum BotError {
+    TimedOut
+}
+
+unsafe impl Send for BotError {}
+unsafe impl Sync for BotError {}
+impl std::error::Error for BotError {}
+impl Display for BotError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self {
+            Self::TimedOut => write!(f, "Operation timed out!")?
+        }
+        Ok(())
+    }
+}
+
 #[command]
 async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     msg.channel_id.say(&ctx.http, "Pong!").await?;
 
     Ok(())
+}
+
+async fn query_from_user(ctx: &Context, user: &User, msg: &str) -> UResult<String> {
+    let dm = user.create_dm_channel(&ctx.http).await?;
+
+    dm.send_message(&ctx.http, |m| {
+        m.content(msg)
+    }).await?;
+
+    let reply = user.await_reply(&ctx.shard)
+        .timeout(Duration::new(60 * 2, 0))
+        .await
+        .map(|m| Arc::try_unwrap(m).unwrap())
+        .map(|m| m.content);
+
+    reply.ok_or(BotError::TimedOut.into())
 }
 
 async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> UResult {
