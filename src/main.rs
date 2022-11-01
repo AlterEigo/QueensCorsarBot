@@ -113,6 +113,9 @@ async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> URes
         }
     }
 
+    let msg = MessageBuilder::new()
+        .push_bold_line_safe("Теперь сообщи мне пожалуйста свой ник в игре, и я поставлю тебе его в группе")
+        .build();
     let nickname = loop {
         if !user_is_in_guild(ctx, user, gid).await? {
             send_privately(ctx, user, "Увы, вы больше не состоите в группе гильдии!").await?;
@@ -138,6 +141,11 @@ async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> URes
         .await?
         .edit_member(&ctx.http, user.id.0, |member| member.nickname(nickname))
         .await?;
+
+    let msg = MessageBuilder::new()
+        .push_bold_line_safe("Всё готово! Тебе выдана роль и назначен псевдоним. Приятной игры!")
+        .build();
+    send_privately(ctx, user, &msg).await?;
 
     Ok(())
 }
