@@ -103,7 +103,10 @@ async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> URes
         {
             Ok(r) => match r.as_str() {
                 "да" | "+" | "ок" | "yes" | "y" => break,
-                "нет" | "no" | "-" | "n" => return Err(BotError::RulesRefused.into()),
+                "нет" | "no" | "-" | "n" => {
+                    send_privately(ctx, user, "Ну, на нет и суда нет! Если вдруг передумаешь - введи команду `!rules` в чате гильдии!").await?;
+                    return Err(BotError::RulesRefused.into())
+                },
                 _ => {
                     send_privately(ctx, user, "Вы можете ответить только 'Да' или 'Нет'").await?;
                     continue;
@@ -143,7 +146,7 @@ async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> URes
         .await?;
 
     let msg = MessageBuilder::new()
-        .push_bold_line_safe("Всё готово! Тебе выдана роль и назначен псевдоним. Приятной игры!")
+        .push_bold_line_safe("Всё готово! Тебе выдана роль в группе и поставлен псевдоним. Приятной игры!")
         .build();
     send_privately(ctx, user, &msg).await?;
 
