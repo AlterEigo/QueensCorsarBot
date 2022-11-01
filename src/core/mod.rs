@@ -1,10 +1,22 @@
+use std::{path::Path, fs::File, io::{BufReader, Read}};
+
 use serenity::{
     model::prelude::*,
     prelude::*,
-    utils::MessageBuilder,
+    utils::MessageBuilder
 };
 
 use crate::prelude::*;
+
+/// Загрузка текста с правилами гильдии из предусмотренного файла
+fn load_guild_rules() -> UResult<String> {
+    let path = Path::new("rules.md");
+    let file = File::open(path)?;
+    let mut reader = BufReader::new(file);
+    let mut buffer = String::new();
+    reader.read_to_string(&mut buffer)?;
+    Ok(buffer)
+}
 
 pub async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> UResult {
     let msg = MessageBuilder::new().push("Тут типа свод правил").build();
