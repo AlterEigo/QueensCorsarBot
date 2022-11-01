@@ -10,6 +10,7 @@ use serenity::{
 };
 
 use std::sync::RwLock;
+use std::sync::Arc;
 use std::fs::File;
 use std::io::{BufReader,BufRead,Write,Error};
 use serenity::async_trait;
@@ -34,7 +35,8 @@ async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> URes
         let reply = user.await_reply(&ctx.shard)
             .timeout(Duration::new(60 * 2, 0))
             .await
-            .map(|msg| msg.content.clone());
+            .map(|msg| Arc::try_unwrap(msg).unwrap())
+            .map(|msg| msg.content);
 
         // 1. Проверяем на наличие в гильдии
 
@@ -55,7 +57,8 @@ async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> URes
         let reply = user.await_reply(&ctx.shard)
             .timeout(Duration::new(60 * 2, 0))
             .await
-            .map(|msg| msg.content.clone());
+            .map(|msg| Arc::try_unwrap(msg).unwrap())
+            .map(|msg| msg.content);
 
         if reply.is_none() {
             private.send_message(&ctx.http, |m| {
