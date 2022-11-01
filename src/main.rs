@@ -111,31 +111,16 @@ async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> URes
             }
         }
 
-        private
-            .send_message(&ctx.http, |m| {
-                m.content("Отлично! Позволь узнать твой ник в игре?")
-            })
-            .await?;
-
-        let reply = user
-            .await_reply(&ctx.shard)
-            .timeout(Duration::new(60 * 2, 0))
-            .await
-            .map(|msg| Arc::try_unwrap(msg).unwrap())
-            .map(|msg| msg.content);
-
-        if reply.is_none() {
-            private
-                .send_message(&ctx.http, |m| {
-                    m.content("Упс! Время истекло. Попробуем еще раз?")
-                })
-                .await?;
-            continue;
-        }
-
-        // 1. Проверяем наличие в гильдии
-
-        let reply = reply.unwrap();
+        let nickname = loop {
+            if !user_is_in_guild(ctx, user, gid).await? {
+                send_privately(ctx, user, "Увы, вы больше не состоите в группе гильдии!").await?;
+                return Err(BotError::NotInGuild.into());
+            }
+            match query_from_user(ctx, user, &msg).await {
+                Ok(r) => break r,
+                Err(_) => continue,
+            }
+        };
 
         let role_id: u64 = 1036571268809498654;
         ctx.http
@@ -149,7 +134,7 @@ async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> URes
         ctx.http
             .get_guild(gid.0)
             .await?
-            .edit_member(&ctx.http, user.id.0, |member| member.nickname(reply))
+            .edit_member(&ctx.http, user.id.0, |member| member.nickname(nickname))
             .await?;
 
         break;
