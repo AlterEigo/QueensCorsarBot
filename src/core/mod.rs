@@ -19,9 +19,17 @@ fn load_guild_rules() -> UResult<String> {
 }
 
 pub async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> UResult {
-    let rules = load_guild_rules()?;
-    let msg = MessageBuilder::new().push_safe(rules).build();
-    send_privately(ctx, user, &msg).await?;
+    let rules = load_guild_rules()?
+        .split_terminator("===")
+        .map(|paragraph| String::from(paragraph))
+        .collect::<Vec<String>>();
+
+    for paragraph in rules {
+        let msg = MessageBuilder::new()
+            .push(paragraph)
+            .build();
+        send_privately(ctx, user, &msg).await?;
+    }
 
     let msg = MessageBuilder::new()
         .push_bold_line_safe("Принимаете ли вы свод правил гильдии? (Да/Нет)")
