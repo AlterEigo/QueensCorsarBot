@@ -10,6 +10,7 @@ pub enum BotError {
     TimedOut,
     NotInGuild,
     RulesRefused,
+    MessageTooLong
 }
 
 unsafe impl Send for BotError {}
@@ -21,6 +22,7 @@ impl Display for BotError {
             Self::TimedOut => write!(f, "Operation timed out!")?,
             Self::NotInGuild => write!(f, "User is not a part of the current session's guild!")?,
             Self::RulesRefused => write!(f, "User explicitly declined the rules")?,
+            Self::MessageTooLong => write!(f, "Tryied to send the message bigger than Discord allows")?,
         }
         Ok(())
     }
