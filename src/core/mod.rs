@@ -9,20 +9,33 @@ use serenity::{
 use crate::prelude::*;
 
 /// Загрузка текста с правилами гильдии из предусмотренного файла
-fn load_guild_rules() -> UResult<String> {
+///
+/// Данная функция загружает текст с правилами предварительно
+/// разбивая его на параграфы, которые должны соответствовать
+/// размеру не более 2000 символов (Ограничение Discord)
+fn load_guild_rules() -> UResult<Vec<String>> {
     let path = Path::new("rules.md");
     let file = File::open(path)?;
     let mut reader = BufReader::new(file);
     let mut buffer = String::new();
     reader.read_to_string(&mut buffer)?;
-    Ok(buffer)
+    let content: Result<Vec<_>, _> = buffer.split_terminator("===")
+        .map(|paragraph| {
+            if paragraph.len() > 2000 {
+                Err(BotError::MessageTooLong)
+            } else {
+                Ok(String::from(paragraph))
+            }
+        })
+        .collect();
+    match content {
+        Ok(v) => Ok(v),
+        Err(why) => Err(why.into())
+    }
 }
 
 pub async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> UResult {
-    let rules = load_guild_rules()?
-        .split_terminator("===")
-        .map(|paragraph| String::from(paragraph))
-        .collect::<Vec<String>>();
+    let rules = load_guild_rules()?;
 
     for paragraph in rules {
         let msg = MessageBuilder::new()
