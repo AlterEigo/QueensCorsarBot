@@ -57,6 +57,12 @@ async fn query_from_user(ctx: &Context, user: &User, msg: &str) -> UResult<Strin
     reply.ok_or(BotError::TimedOut.into())
 }
 
+async fn user_is_in_guild(ctx: &Context, user: &User, gid: &GuildId) -> UResult<bool> {
+    let r = ctx.http.search_guild_members(gid.0, user.name.as_str(), Some(1))
+        .await?;
+    Ok(r.len() > 0)
+}
+
 async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> UResult {
     let private = user.create_dm_channel(&ctx.http).await?;
     loop {
