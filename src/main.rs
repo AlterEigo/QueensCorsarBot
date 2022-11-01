@@ -12,7 +12,7 @@ use serenity::{
 };
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> UResult {
     let token = std::env::var("QUEENSCORSAR_TOKEN")
         .expect("Couldn't fetch the API token from the environment");
     let framework = StandardFramework::new()
