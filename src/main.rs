@@ -220,22 +220,6 @@ impl EventHandler for Handler {
     }
 
     async fn guild_member_addition(&self, ctx: Context, new_member: Member) {
-        // let response = MessageBuilder::new()
-        // .push("Ничоси, ")
-        // .push_bold_safe(new_member.display_name())
-        // .push_line(" присоединился! О.О")
-        // .push_line("Ну здарова, чо!")
-        // .build();
-        // let defalt_channel = new_member.default_channel(&ctx.cache).expect("Couldn't retrieve the default channel!");
-        // let msg = defalt_channel.say(&ctx.http, response);
-
-        // let greeting = MessageBuilder::new()
-        // .push("Привет! Какой твой ник в игре?")
-        // .build();
-        // new_member.user.direct_message(&ctx.http, |m| {
-        // m.content(&greeting)
-        // }).await.expect("Could not send the private message");
-
         match start_signup_session(&ctx, &new_member.user, &new_member.guild_id).await {
             Err(contents) => {
                 panic!("Something went wrong! Reason: {}", contents)
