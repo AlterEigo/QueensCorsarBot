@@ -1,8 +1,10 @@
 use std::fmt::Display;
 use std::io::Write;
 
+/// Универсальное возвращаемое значение с возможностью типизирования параметра
 pub type UResult<T = ()> = Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
+/// Перечисление стандартных возможных ошибок бота
 #[derive(Debug)]
 pub enum BotError {
     TimedOut,
