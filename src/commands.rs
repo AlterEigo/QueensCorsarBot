@@ -11,6 +11,8 @@ use serenity::{
 use crate::core::start_signup_session;
 use crate::prelude::*;
 
+use slog::o;
+
 /// Команда проверки связи с ботом
 #[command]
 async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
@@ -23,11 +25,13 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
     let logger = child_logger(ctx, "command::rules").await?;
-    info!(logger, "Executing 'rules' command";
-        "initiator name" => &msg.author.name,
-        "guild id" => msg.guild_id.unwrap().0,
-        "initiator id" => msg.author.id.0
+    let logger = logger.new(o!(
+            "initiator name" => msg.author.name.to_owned(),
+            "guild id" => msg.guild_id.unwrap().0,
+            "initiator id" => msg.author.id.0,
+            "unique execution id" => unique_id())
     );
+    info!(logger, "Executing 'rules' command");
 
     let user = &msg.author;
 
@@ -45,6 +49,7 @@ async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
         error!(logger, "Could not successfully register the user"; "reason" => format!("{:?}", why));
         Err(why.into())
     } else {
+        info!(logger, "Successfully passed registration process");
         Ok(())
     }
 }
