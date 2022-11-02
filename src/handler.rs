@@ -21,16 +21,24 @@ impl EventHandler for Handler {
     /// соединение с серверами дискорда и готов к последующей
     /// инициализации и работе
     async fn ready(&self, ctx: Context, data_about_bot: Ready) {
-        // Synchronize the registry with present players
-        println!("Ready event fired!");
-        // todo!()
+        let logger = match child_logger(&ctx, "event::ready").await {
+            Ok(value) => value,
+            Err(why) => panic!("Failed to retrieve the logger: {:#?}", why)
+        };
+
+        info!(logger, "Bot successfully initialized and ready for requests");
     }
 
     /// Обработчик события переподключения
     ///
     /// Уточнить условия при которых происходит вызов
     async fn resume(&self, ctx: Context, _arg2: ResumedEvent) {
-        println!("Resume event fired!");
+        let logger = match child_logger(&ctx, "event::resume").await {
+            Ok(value) => value,
+            Err(why) => panic!("Failed to retrieve the logger: {:#?}", why)
+        };
+
+        info!(logger, "Resume event fired");
     }
 
     /// Выход пользователя из группы
