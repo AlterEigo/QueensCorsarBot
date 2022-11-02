@@ -86,7 +86,7 @@ pub async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> 
         }
     };
 
-    let role_id: u64 = 1036571268809498654;
+    let role_id: u64 = 1037417494178181231; // TODO: Читать из конфига
     ctx.http
         .add_member_role(
             gid.0,
