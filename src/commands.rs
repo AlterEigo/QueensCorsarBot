@@ -44,9 +44,9 @@ async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
 
     debug!(logger, "Starting sign up session");
     if let Err(why) = start_signup_session(&ctx, &user, &msg.guild_id.unwrap()).await {
-        let msg = "Ого! Что-то дало сбой... Пожалуйста не забудь сообщить об этом случае Иннри!";
+        let msg = "Ого! Что-то дало сбой... Пожалуйста, не забудь сообщить об этом случае Иннри!";
         send_privately(ctx, user, msg).await?;
-        error!(logger, "Could not successfully register the user"; "reason" => format!("{:?}", why));
+        error!(logger, "Could not successfully register the user"; "reason" => format!("{:#?}", why));
         Err(why.into())
     } else {
         info!(logger, "Successfully passed registration process");
