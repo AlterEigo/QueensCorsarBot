@@ -1,12 +1,6 @@
 use crate::prelude::*;
-use serenity::{
-    model::prelude::*,
-    prelude::*,
-};
-use std::{
-    collections::HashMap,
-    time::Duration,
-};
+use serenity::{model::prelude::*, prelude::*};
+use std::{collections::HashMap, time::Duration};
 
 use std::sync::Arc;
 
@@ -44,9 +38,7 @@ pub async fn user_is_in_guild(ctx: &Context, user: &User, gid: &GuildId) -> URes
 /// Отправка личного сообщения пользователю
 pub async fn send_privately(ctx: &Context, user: &User, msg: &str) -> UResult {
     let private = user.create_dm_channel(&ctx.http).await?;
-    private.send_message(&ctx.http, |m| {
-        m.content(msg)
-    }).await?;
+    private.send_message(&ctx.http, |m| m.content(msg)).await?;
     Ok(())
 }
 

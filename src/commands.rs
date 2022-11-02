@@ -32,7 +32,7 @@ async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
 
     match start_signup_session(&ctx, &user, &msg.guild_id.unwrap()).await {
         Err(why) => println!("[rules]: Something went wrong: {:?}", why),
-        _ => ()
+        _ => (),
     };
 
     Ok(())

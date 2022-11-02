@@ -1,8 +1,5 @@
 use crate::prelude::*;
-use serenity::{
-    model::prelude::*,
-    prelude::*,
-};
+use serenity::{model::prelude::*, prelude::*};
 
 use serenity::async_trait;
 
@@ -62,4 +59,3 @@ impl EventHandler for Handler {
         };
     }
 }
-

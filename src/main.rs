@@ -1,15 +1,11 @@
+mod commands;
 mod core;
 mod handler;
-mod utility;
 mod prelude;
-mod commands;
+mod utility;
 
 use crate::prelude::*;
-use serenity::{
-    framework::StandardFramework,
-    model::prelude::*,
-    Client,
-};
+use serenity::{framework::StandardFramework, model::prelude::*, Client};
 
 #[tokio::main]
 async fn main() -> UResult {

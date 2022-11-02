@@ -1,10 +1,10 @@
-use std::{path::Path, fs::File, io::{BufReader, Read}};
-
-use serenity::{
-    model::prelude::*,
-    prelude::*,
-    utils::MessageBuilder
+use std::{
+    fs::File,
+    io::{BufReader, Read},
+    path::Path,
 };
+
+use serenity::{model::prelude::*, prelude::*, utils::MessageBuilder};
 
 use crate::prelude::*;
 
@@ -19,7 +19,8 @@ fn load_guild_rules() -> UResult<Vec<String>> {
     let mut reader = BufReader::new(file);
     let mut buffer = String::new();
     reader.read_to_string(&mut buffer)?;
-    let content: Result<Vec<_>, _> = buffer.split_terminator("===")
+    let content: Result<Vec<_>, _> = buffer
+        .split_terminator("===")
         .map(|paragraph| {
             if paragraph.len() > 2000 {
                 Err(BotError::MessageTooLong)
@@ -30,7 +31,7 @@ fn load_guild_rules() -> UResult<Vec<String>> {
         .collect();
     match content {
         Ok(v) => Ok(v),
-        Err(why) => Err(why.into())
+        Err(why) => Err(why.into()),
     }
 }
 
@@ -38,9 +39,7 @@ pub async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> 
     let rules = load_guild_rules()?;
 
     for paragraph in rules {
-        let msg = MessageBuilder::new()
-            .push(paragraph)
-            .build();
+        let msg = MessageBuilder::new().push(paragraph).build();
         send_privately(ctx, user, &msg).await?;
     }
 
@@ -60,8 +59,8 @@ pub async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> 
                 "да" | "+" | "ок" | "yes" | "y" => break,
                 "нет" | "no" | "-" | "n" => {
                     send_privately(ctx, user, "Ну, на нет и суда нет! Если вдруг передумаешь - введи команду `!rules` в чате гильдии!").await?;
-                    return Err(BotError::RulesRefused.into())
-                },
+                    return Err(BotError::RulesRefused.into());
+                }
                 _ => {
                     send_privately(ctx, user, "Вы можете ответить только 'Да' или 'Нет'").await?;
                     continue;
@@ -72,7 +71,9 @@ pub async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> 
     }
 
     let msg = MessageBuilder::new()
-        .push_bold_line_safe("Теперь сообщи мне пожалуйста свой ник в игре, и я поставлю тебе его в группе")
+        .push_bold_line_safe(
+            "Теперь сообщи мне пожалуйста свой ник в игре, и я поставлю тебе его в группе",
+        )
         .build();
     let nickname = loop {
         if !user_is_in_guild(ctx, user, gid).await? {
@@ -101,10 +102,11 @@ pub async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> 
         .await?;
 
     let msg = MessageBuilder::new()
-        .push_bold_line_safe("Всё готово! Тебе выдана роль в группе и поставлен псевдоним. Приятной игры!")
+        .push_bold_line_safe(
+            "Всё готово! Тебе выдана роль в группе и поставлен псевдоним. Приятной игры!",
+        )
         .build();
     send_privately(ctx, user, &msg).await?;
 
     Ok(())
 }
-
