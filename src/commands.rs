@@ -22,7 +22,7 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
 /// Команда запроса правил сервера и запуска процесса регистрации
 #[command]
 async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
-    let logger = child_logger(ctx).await?;
+    let logger = child_logger(ctx, "command::rules").await?;
     info!(logger, "Executing 'rules' command";
         "initiator nabe" => &msg.author.name,
         "guild id" => msg.guild_id.unwrap().0,

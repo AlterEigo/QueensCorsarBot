@@ -4,6 +4,7 @@ use slog::Logger;
 use std::time::Duration;
 
 use std::sync::Arc;
+use slog::o;
 
 /// Запроса ввода от пользователя
 ///
@@ -28,14 +29,14 @@ pub async fn query_from_user(ctx: &Context, user: &User, msg: &str) -> UResult<S
 }
 
 /// Создание дочерней копии основного логгера
-pub async fn child_logger(ctx: &Context) -> UResult<Logger> {
+pub async fn child_logger(ctx: &Context, submodule: &str) -> UResult<Logger> {
     let data = ctx.data.read().await;
     let loggers = data
         .get::<LoggersKey>()
         .ok_or(BotError::DataNotFound("Loggers hashmap"))?;
     loggers
         .get("root")
-        .map(|logger| logger.clone())
+        .map(|logger| logger.new(o!("from" => submodule.to_owned())))
         .ok_or(BotError::DataNotFound("Root logger").into())
 }
 
