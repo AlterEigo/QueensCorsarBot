@@ -24,7 +24,7 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
 async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
     let logger = child_logger(ctx, "command::rules").await?;
     info!(logger, "Executing 'rules' command";
-        "initiator nabe" => &msg.author.name,
+        "initiator name" => &msg.author.name,
         "guild id" => msg.guild_id.unwrap().0,
         "initiator id" => msg.author.id.0
     );
@@ -40,8 +40,7 @@ async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
 
     debug!(logger, "Starting sign up session");
     if let Err(why) = start_signup_session(&ctx, &user, &msg.guild_id.unwrap()).await {
-        let msg =
-            "Ого! Что-то дало сбой... Пожалуйста не забудь сообщить об этом случае Иннри!";
+        let msg = "Ого! Что-то дало сбой... Пожалуйста не забудь сообщить об этом случае Иннри!";
         send_privately(ctx, user, msg).await?;
         error!(logger, "Could not successfully register the user"; "reason" => format!("{:?}", why));
         Err(why.into())
