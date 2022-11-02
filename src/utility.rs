@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use nanoid::nanoid;
 use serenity::{model::prelude::*, prelude::*};
 use slog::Logger;
 use std::{time::Duration, sync::atomic::AtomicUsize};
@@ -7,12 +8,17 @@ use slog::o;
 use std::sync::Arc;
 
 static UNIQUE_COUNTER: AtomicUsize = AtomicUsize::new(1);
+const NANOID_LEN: usize = 16;
 
 /// Создание уникального идентификатора
 ///
 /// Данная функция адаптирована для многопоточности
 pub fn unique_id() -> usize {
     UNIQUE_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+}
+
+pub fn unique_nano() -> String {
+    nanoid!(NANOID_LEN)
 }
 
 /// Запроса ввода от пользователя
