@@ -42,3 +42,4 @@ pub use crate::commands::*;
 pub use crate::core::*;
 pub use crate::handler::*;
 pub use crate::utility::*;
+pub use slog::{crit, debug, error, info, warn};
