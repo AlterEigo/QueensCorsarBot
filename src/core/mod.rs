@@ -49,7 +49,7 @@ pub async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> 
     loop {
         if !user_is_in_guild(ctx, user, gid).await? {
             send_privately(ctx, user, "Увы, вы больше не состоите в группе гильдии!").await?;
-            return Err(BotError::NotInGuild.into());
+            return Ok(());
         }
         match query_from_user(ctx, user, &msg)
             .await
@@ -59,7 +59,7 @@ pub async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> 
                 "да" | "+" | "ок" | "yes" | "y" => break,
                 "нет" | "no" | "-" | "n" => {
                     send_privately(ctx, user, "Ну, на нет и суда нет! Если вдруг передумаешь - введи команду `!rules` в чате гильдии!").await?;
-                    return Err(BotError::RulesRefused.into());
+                    return Ok(());
                 }
                 _ => {
                     send_privately(ctx, user, "Вы можете ответить только 'Да' или 'Нет'").await?;
@@ -78,7 +78,7 @@ pub async fn start_signup_session(ctx: &Context, user: &User, gid: &GuildId) -> 
     let nickname = loop {
         if !user_is_in_guild(ctx, user, gid).await? {
             send_privately(ctx, user, "Увы, вы больше не состоите в группе гильдии!").await?;
-            return Err(BotError::NotInGuild.into());
+            return Ok(());
         }
         match query_from_user(ctx, user, &msg).await {
             Ok(r) => break r,
