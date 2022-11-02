@@ -1,10 +1,19 @@
 use crate::prelude::*;
 use serenity::{model::prelude::*, prelude::*};
 use slog::Logger;
-use std::time::Duration;
+use std::{time::Duration, sync::atomic::AtomicUsize};
 
 use slog::o;
 use std::sync::Arc;
+
+static UNIQUE_COUNTER: AtomicUsize = AtomicUsize::new(1);
+
+/// Создание уникального идентификатора
+///
+/// Данная функция адаптирована для многопоточности
+pub fn unique_id() -> usize {
+    UNIQUE_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+}
 
 /// Запроса ввода от пользователя
 ///
