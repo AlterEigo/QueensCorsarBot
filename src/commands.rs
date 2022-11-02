@@ -26,9 +26,8 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
 async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
     let logger = child_logger(ctx, "command::rules").await?;
     let logger = logger.new(o!(
-            "initiator name" => msg.author.name.to_owned(),
             "guild id" => msg.guild_id.unwrap().0,
-            "initiator id" => msg.author.id.0,
+            "initiator" => format!("({}, {})", &msg.author.name, msg.author.id.0),
             "unique execution id" => unique_nano())
     );
     info!(logger, "Executing 'rules' command");
