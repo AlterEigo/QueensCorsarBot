@@ -1,5 +1,6 @@
 use crate::prelude::*;
 use serenity::{model::prelude::*, prelude::*};
+use slog::o;
 
 use serenity::async_trait;
 
@@ -11,9 +12,22 @@ pub struct Handler;
 /// для перехвата и обработки программных событий Discord
 #[async_trait]
 impl EventHandler for Handler {
-    // fn message(&self, ctx: Context, msg: Message) {
-    // unimplemented!();
-    // }
+    async fn message(&self, ctx: Context, msg: Message) {
+        let logger = match child_logger(&ctx, "event::message").await {
+            Ok(value) => value,
+            Err(why) => panic!("Failed to retrieve the logger: {:#?}", why)
+        };
+        let logger = logger.new(o!(
+            "initiator" => format!("({}, {})", msg.author.name, msg.author.id.0),
+            "unique execution id" => unique_nano(),
+            "guild id" => match msg.guild(ctx.cache) {
+                Some(guild) => format!("{}", guild.id),
+                None => "None".to_owned()
+            }
+        ));
+
+        info!(logger, "Message event fired"; "content" => msg.content);
+    }
 
     /// Обработчик события полной готовности бота
     ///
