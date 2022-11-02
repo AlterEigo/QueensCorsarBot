@@ -1,6 +1,10 @@
 use crate::prelude::*;
 use serenity::{model::prelude::*, prelude::*};
-use std::{collections::HashMap, time::Duration};
+use slog::Logger;
+use std::{
+    collections::{hash_map::VacantEntry, HashMap},
+    time::Duration,
+};
 
 use std::sync::Arc;
 
@@ -24,6 +28,17 @@ pub async fn query_from_user(ctx: &Context, user: &User, msg: &str) -> UResult<S
         .map(|m| m.content);
 
     reply.ok_or(BotError::TimedOut.into())
+}
+
+pub async fn child_logger(ctx: &Context) -> UResult<Logger> {
+    let data = ctx.data.read().await;
+    let loggers = data
+        .get::<LoggersKey>()
+        .ok_or(BotError::DataNotFound("Loggers hashmap"))?;
+    loggers
+        .get("root")
+        .map(|logger| logger.clone())
+        .ok_or(BotError::DataNotFound("Root logger").into())
 }
 
 /// Проверка присутствия пользователя в указанной группе
