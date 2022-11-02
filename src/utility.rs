@@ -3,8 +3,8 @@ use serenity::{model::prelude::*, prelude::*};
 use slog::Logger;
 use std::time::Duration;
 
-use std::sync::Arc;
 use slog::o;
+use std::sync::Arc;
 
 /// Запроса ввода от пользователя
 ///

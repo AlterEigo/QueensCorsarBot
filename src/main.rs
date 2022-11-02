@@ -72,7 +72,7 @@ async fn main() -> UResult {
             return Err(why.into());
         }
     };
-    debug!(logger, "Successfully initialized serenity client";
+    debug!(logger, "Serenity client initialized";
         "event handler" => "crate::Handler",
         "framework" => "StandardFramework");
 
