@@ -41,24 +41,3 @@ pub async fn send_privately(ctx: &Context, user: &User, msg: &str) -> UResult {
     private.send_message(&ctx.http, |m| m.content(msg)).await?;
     Ok(())
 }
-
-/// Тип-ключ для специального типизированного контейнера `TypeMap`
-pub struct Session;
-impl TypeMapKey for Session {
-    type Value = HashMap<UserId, bool>;
-}
-
-/// Сохранение пары значений ID пользователя и булевого флага
-pub async fn push_session(ctx: &Context, uid: UserId, value: bool) {
-    let mut data = ctx.data.write().await;
-    let sessions = data.entry::<Session>().or_insert(HashMap::new());
-    let entry = sessions.entry(uid).or_insert(true);
-    *entry = value;
-}
-
-/// Удаление сессионного булевого флага связанного с указанным ID пользователя
-pub async fn pop_session(ctx: &Context, uid: UserId) {
-    let mut data = ctx.data.write().await;
-    let sessions = data.entry::<Session>().or_insert(HashMap::new());
-    sessions.remove_entry(&uid);
-}
