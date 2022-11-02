@@ -1,10 +1,7 @@
 use crate::prelude::*;
 use serenity::{model::prelude::*, prelude::*};
 use slog::Logger;
-use std::{
-    collections::{hash_map::VacantEntry, HashMap},
-    time::Duration,
-};
+use std::time::Duration;
 
 use std::sync::Arc;
 
@@ -30,6 +27,7 @@ pub async fn query_from_user(ctx: &Context, user: &User, msg: &str) -> UResult<S
     reply.ok_or(BotError::TimedOut.into())
 }
 
+/// Создание дочерней копии основного логгера
 pub async fn child_logger(ctx: &Context) -> UResult<Logger> {
     let data = ctx.data.read().await;
     let loggers = data
