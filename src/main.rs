@@ -7,9 +7,16 @@ mod utility;
 
 use crate::prelude::*;
 use serenity::{framework::StandardFramework, model::prelude::*, Client};
+use slog::{crit, debug, error, info, o, warn};
+
+const CRATE_VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
 #[tokio::main]
 async fn main() -> UResult {
+    let logger = logger::configure_compact_root();
+
+    info!(logger, "Starting QueenCorsar bot"; "version" => CRATE_VERSION, "author" => "Iaroslav Sorokin (iaroslav.sorokin@gmail.com)");
+
     let token = std::env::var("QUEENSCORSAR_TOKEN")
         .expect("Couldn't fetch the API token from the environment");
     let framework = StandardFramework::new()
