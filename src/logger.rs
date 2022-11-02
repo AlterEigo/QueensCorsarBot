@@ -1,8 +1,4 @@
-use slog::{
-    Logger,
-    Drain,
-    o
-};
+use slog::{o, Drain, Logger};
 
 /// Инициализатор логгера с компактным отображением
 pub fn configure_compact_root() -> Logger {

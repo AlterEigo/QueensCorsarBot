@@ -1,9 +1,9 @@
 mod commands;
 mod core;
 mod handler;
+mod logger;
 mod prelude;
 mod utility;
-mod logger;
 
 use crate::prelude::*;
 use serenity::{framework::StandardFramework, model::prelude::*, Client};

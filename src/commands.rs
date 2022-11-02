@@ -32,10 +32,11 @@ async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
 
     match start_signup_session(&ctx, &user, &msg.guild_id.unwrap()).await {
         Err(why) => {
-            let msg = "Ого! Что-то дало сбой... Пожалуйста не забудь сообщить об этом случае Иннри!";
+            let msg =
+                "Ого! Что-то дало сбой... Пожалуйста не забудь сообщить об этом случае Иннри!";
             send_privately(ctx, user, msg).await?;
             println!("[rules]: Something went wrong: {:?}", why);
-        },
+        }
         _ => (),
     };
 
