@@ -29,7 +29,7 @@ async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
             "initiator name" => msg.author.name.to_owned(),
             "guild id" => msg.guild_id.unwrap().0,
             "initiator id" => msg.author.id.0,
-            "unique execution id" => unique_id())
+            "unique execution id" => unique_nano())
     );
     info!(logger, "Executing 'rules' command");
 
