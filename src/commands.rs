@@ -8,7 +8,7 @@ use serenity::{
     utils::MessageBuilder,
 };
 
-use crate::core::start_signup_session;
+use crate::{core::start_signup_session, prelude::send_privately};
 
 /// Команда проверки связи с ботом
 #[command]
@@ -31,7 +31,11 @@ async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
     msg.channel_id.say(&ctx.http, response).await?;
 
     match start_signup_session(&ctx, &user, &msg.guild_id.unwrap()).await {
-        Err(why) => println!("[rules]: Something went wrong: {:?}", why),
+        Err(why) => {
+            let msg = "Ого! Что-то дало сбой... Пожалуйста не забудь сообщить об этом случае Иннри!";
+            send_privately(ctx, user, msg).await?;
+            println!("[rules]: Something went wrong: {:?}", why);
+        },
         _ => (),
     };
 
