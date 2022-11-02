@@ -3,6 +3,7 @@ mod core;
 mod handler;
 mod prelude;
 mod utility;
+mod logger;
 
 use crate::prelude::*;
 use serenity::{framework::StandardFramework, model::prelude::*, Client};
