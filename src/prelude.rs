@@ -12,6 +12,7 @@ pub enum BotError {
     NotInGuild,
     RulesRefused,
     MessageTooLong,
+    DataNotFound(&'static str),
 }
 
 unsafe impl Send for BotError {}
@@ -26,6 +27,7 @@ impl Display for BotError {
             Self::MessageTooLong => {
                 write!(f, "Tryied to send the message bigger than Discord allows")?
             }
+            Self::DataNotFound(m) => write!(f, "Data not found: {}", m)?,
         }
         Ok(())
     }
