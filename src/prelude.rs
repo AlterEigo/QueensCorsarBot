@@ -1,5 +1,6 @@
+use serenity::prelude::*;
+use std::collections::HashMap;
 use std::fmt::Display;
-use std::io::Write;
 
 /// Универсальное возвращаемое значение с возможностью типизирования параметра
 pub type UResult<T = ()> = Result<T, Box<dyn std::error::Error + Send + Sync>>;
@@ -28,6 +29,11 @@ impl Display for BotError {
         }
         Ok(())
     }
+}
+
+pub struct LoggersKey;
+impl TypeMapKey for LoggersKey {
+    type Value = HashMap<String, slog::Logger>;
 }
 
 pub use crate::commands::*;
