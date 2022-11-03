@@ -15,7 +15,7 @@ const TOKEN_ENV: &'static str = "QUEENSCORSAR_TOKEN";
 
 #[tokio::main]
 async fn main() -> UResult {
-    let logger = logger::configure_compact_root();
+    let logger = logger::configure_compact_root()?;
     info!(logger, "Starting QueenCorsar bot";
         "version" => CRATE_VERSION,
         "author" => "Iaroslav Sorokin",
