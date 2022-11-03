@@ -1,2 +1,5 @@
-/target
-rules.md
+*
+!*/
+!*.rs
+
+target/
