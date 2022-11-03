@@ -17,10 +17,10 @@ const TOKEN_ENV: &'static str = "QUEENSCORSAR_TOKEN";
 async fn main() -> UResult {
     let logger = logger::configure_compact_root()?;
     info!(logger, "Starting QueenCorsar bot";
-        "version" => CRATE_VERSION,
-        "author" => "Iaroslav Sorokin",
+        "upstream" => "https://github.com/AlterEigo/QueensCorsarBot",
         "email" => "iaroslav.sorokin@gmail.com",
-        "upstream" => "https://github.com/AlterEigo/QueensCorsarBot"
+        "author" => "Iaroslav Sorokin",
+        "version" => CRATE_VERSION,
     );
 
     let token = match std::env::var(TOKEN_ENV) {
@@ -43,9 +43,9 @@ async fn main() -> UResult {
         .configure(|c| c.prefix(prefix))
         .group(&GENERAL_GROUP);
     debug!(logger, "Serenity standard framework initialized";
-        "prefix" => "!",
+        "options" => format!("{:#?}", GENERAL_GROUP.options),
         "group" => &GENERAL_GROUP.name,
-        "options" => format!("{:#?}", GENERAL_GROUP.options)
+        "prefix" => "!",
     );
 
     let intents = GatewayIntents::non_privileged()
