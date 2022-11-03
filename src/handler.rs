@@ -18,12 +18,12 @@ impl EventHandler for Handler {
             Err(why) => panic!("Failed to retrieve the logger: {:#?}", why),
         };
         let logger = logger.new(o!(
-            "initiator" => format!("({}, {})", msg.author.name, msg.author.id.0),
-            "unique execution id" => unique_nano(),
             "guild id" => match msg.guild(ctx.cache) {
                 Some(guild) => format!("{}", guild.id),
                 None => "None".to_owned()
-            }
+            },
+            "initiator" => format!("({}, {})", msg.author.name, msg.author.id.0),
+            "unique execution id" => unique_nano(),
         ));
 
         let bot_uid = 1034395163302297600;
