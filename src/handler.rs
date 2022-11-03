@@ -26,7 +26,12 @@ impl EventHandler for Handler {
             }
         ));
 
-        info!(logger, "Message event fired"; "content" => msg.content);
+        let bot_uid = 1034395163302297600;
+        if msg.author.id != bot_uid {
+            info!(logger, "Message event fired"; "content" => msg.content);
+        } else {
+            info!(logger, "Message event fired");
+        }
     }
 
     /// Обработчик события полной готовности бота
