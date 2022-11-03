@@ -28,8 +28,7 @@ async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
     let logger = logger.new(o!(
             "guild id" => msg.guild_id.unwrap().0,
             "initiator" => format!("({}, {})", &msg.author.name, msg.author.id.0),
-            "unique execution id" => unique_nano())
-    );
+            "unique execution id" => unique_nano()));
     info!(logger, "Executing 'rules' command");
 
     let user = &msg.author;

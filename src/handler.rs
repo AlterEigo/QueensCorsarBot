@@ -15,7 +15,7 @@ impl EventHandler for Handler {
     async fn message(&self, ctx: Context, msg: Message) {
         let logger = match child_logger(&ctx, "event::message").await {
             Ok(value) => value,
-            Err(why) => panic!("Failed to retrieve the logger: {:#?}", why)
+            Err(why) => panic!("Failed to retrieve the logger: {:#?}", why),
         };
         let logger = logger.new(o!(
             "initiator" => format!("({}, {})", msg.author.name, msg.author.id.0),
@@ -37,10 +37,13 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, data_about_bot: Ready) {
         let logger = match child_logger(&ctx, "event::ready").await {
             Ok(value) => value,
-            Err(why) => panic!("Failed to retrieve the logger: {:#?}", why)
+            Err(why) => panic!("Failed to retrieve the logger: {:#?}", why),
         };
 
-        info!(logger, "Bot successfully initialized and ready for requests");
+        info!(
+            logger,
+            "Bot successfully initialized and ready for requests"
+        );
     }
 
     /// Обработчик события переподключения
@@ -49,7 +52,7 @@ impl EventHandler for Handler {
     async fn resume(&self, ctx: Context, _arg2: ResumedEvent) {
         let logger = match child_logger(&ctx, "event::resume").await {
             Ok(value) => value,
-            Err(why) => panic!("Failed to retrieve the logger: {:#?}", why)
+            Err(why) => panic!("Failed to retrieve the logger: {:#?}", why),
         };
 
         info!(logger, "Resume event fired");

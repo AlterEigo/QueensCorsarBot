@@ -2,7 +2,7 @@ use crate::prelude::*;
 use nanoid::nanoid;
 use serenity::{model::prelude::*, prelude::*};
 use slog::Logger;
-use std::{time::Duration, sync::atomic::AtomicUsize};
+use std::{sync::atomic::AtomicUsize, time::Duration};
 
 use slog::o;
 use std::sync::Arc;
