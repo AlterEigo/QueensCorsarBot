@@ -38,6 +38,7 @@ impl TypeMapKey for LoggersKey {
     type Value = HashMap<String, slog::Logger>;
 }
 
+pub use qcproto::*;
 pub use crate::commands::*;
 pub use crate::core::*;
 pub use crate::handler::*;
