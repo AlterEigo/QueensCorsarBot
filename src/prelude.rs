@@ -1,4 +1,5 @@
 use serenity::prelude::*;
+use qcproto::prelude::*;
 use std::collections::HashMap;
 use std::fmt::Display;
 
