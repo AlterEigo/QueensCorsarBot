@@ -1,3 +1,5 @@
+pub mod application;
+
 use std::{
     fs::File,
     io::{BufReader, Read},

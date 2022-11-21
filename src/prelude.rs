@@ -1,10 +1,6 @@
-use qcproto::prelude::*;
 use serenity::prelude::*;
 use std::collections::HashMap;
 use std::fmt::Display;
-
-/// Универсальное возвращаемое значение с возможностью типизирования параметра
-pub type UResult<T = ()> = Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
 /// Перечисление стандартных возможных ошибок бота
 #[derive(Debug)]
@@ -43,5 +39,5 @@ pub use crate::commands::*;
 pub use crate::core::*;
 pub use crate::handler::*;
 pub use crate::utility::*;
-pub use qcproto::*;
+pub use qcproto::prelude::*;
 pub use slog::{crit, debug, error, info, warn};
