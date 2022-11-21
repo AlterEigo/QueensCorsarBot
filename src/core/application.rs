@@ -1,10 +1,12 @@
 use crate::prelude::*;
 use qcproto::prelude::*;
-use serenity::prelude::TypeMapKey;
+use serenity::prelude::{TypeMapKey, Context};
 use serenity::utils::MessageBuilder;
 use serenity::{framework::StandardFramework, model::prelude::*, Client};
 use slog::{crit, debug, info, Logger};
 use std::collections::HashMap;
+use std::future::Future;
+use std::marker::PhantomData;
 use std::sync::Arc;
 use serde_json::{json, Value};
 use std::thread;
@@ -78,24 +80,77 @@ impl<ST, RT> Pipe<ST, RT>
     }
 }
 
-struct PipeKey;
-impl TypeMapKey for PipeKey
+struct PipesKey<T>
+    where for<'x> T: 'x + Send + Sync
 {
-    type Value = HashMap<String, Pipe>;
+    phantom_t: PhantomData<T>
+}
+impl<T> TypeMapKey for PipesKey<T>
+    where for<'x> T: 'x + Send + Sync
+{
+    type Value = HashMap<String, Pipe<T>>;
 }
 
-struct CommandHandler {
-    logger: Logger
+struct DsCommandHandler {
+    logger: Logger,
+    ds_context: Context,
+    async_runtime: tokio::runtime::Runtime
 }
 
-pub fn bootstrap_command_server(ctx: &BootstrapRequirements, comm: Pipe) -> UResult {
+impl DsCommandHandler {
+    pub fn new(logger: Logger, ds_context: Context, async_runtime: tokio::runtime::Runtime) -> Self {
+        Self { logger, ds_context, async_runtime }
+    }
+}
+
+impl CommandHandler for DsCommandHandler {
+    fn forward_message(&self, msg: Command) -> UResult {
+        info!(self.logger, "Forwarding the message: {:#?}", msg);
+        let ds_context = self.ds_context.clone();
+        self.as_sync(async move {
+            let guild = ds_context.http.get_guild(1032941443058241546).await?;
+            let channel_id = ChannelId(1034419827525296191);
+            let channels = guild.channels(&ds_context.http).await?;
+            let channel = channels.get(&channel_id).unwrap();
+            if let CommandKind::ForwardMessage { from, to: _, content } = msg.kind {
+                let msg_content = MessageBuilder::new()
+                    .push_bold_safe(from.name)
+                    .push_line_safe(" пишет:")
+                    .push_safe(content)
+                    .build();
+                channel.send_message(&ds_context.http, |m| {
+                    m.content(msg_content)
+                });
+                UResult::Ok(())
+            } else {
+                UResult::Err("".into())
+            }
+        });
+        // let _ = self.ds_context.http.send_message("1034419827525296191".parse::<u64>(), "");
+        Ok(())
+    }
+}
+
+impl DsCommandHandler {
+    fn as_sync<F>(&self, f: F) -> UResult<<F as Future>::Output>
+        where F: Future + Send + 'static,
+              F::Output: Send + 'static
+    {
+        let t = self.async_runtime.spawn(f);
+        Ok(self.async_runtime.block_on(t)?)
+    }
+}
+
+pub fn bootstrap_command_server(ctx: &BootstrapRequirements, comm: Pipe<Context>) -> UResult {
     let srv_addr = format!(
         "{}",
         "/tmp/qcorsar.discord.sock".to_owned()
         // ctx.config.general.sock_addr.to_string_lossy().into_owned()
     );
 
-    let command_handler = Arc::new(DefaultCommandHandler::new(ctx.logger.clone()));
+    let ds_context = comm.recv()?;
+    let runtime = tokio::runtime::Runtime::new()?;
+    let command_handler = Arc::new(DsCommandHandler::new(ctx.logger.clone(), ds_context, runtime));
     let command_dispatcher = Arc::new(DefaultCommandDispatcher::new(
         command_handler,
         ctx.logger.clone(),
@@ -175,13 +230,13 @@ pub async fn bootstrap_application(ctx: BootstrapRequirements) -> UResult {
 
     thread::scope(move |scope| -> UResult {
         let runtime = tokio::runtime::Runtime::new()?;
-        let (cs_side, ds_side) = Pipe::channel();
+        let (cs_side, ds_side) = Pipe::<Context>::channel();
 
         let logger = ctx.logger.clone();
         let client_thread = runtime.spawn(async move {
             {
                 let mut data = client.data.write().await;
-                let mut pipes = data.entry::<PipeKey>().or_insert(HashMap::new());
+                let mut pipes = data.entry::<PipesKey<Context>>().or_insert(HashMap::new());
                 pipes.insert("cmdserver".to_owned(), ds_side);
             }
             if let Err(why) = client.start().await {
