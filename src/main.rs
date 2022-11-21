@@ -9,6 +9,7 @@ use crate::prelude::*;
 use serenity::{framework::StandardFramework, model::prelude::*, Client};
 use slog::{crit, debug, info, Logger};
 use std::collections::HashMap;
+use std::thread;
 
 const CRATE_VERSION: &'static str = env!("CARGO_PKG_VERSION");
 const TOKEN_ENV: &'static str = "QUEENSCORSAR_TOKEN";
@@ -76,10 +77,27 @@ async fn main() -> UResult {
         "event handler" => "crate::Handler",
         "framework" => "StandardFramework");
 
-    if let Err(why) = client.start().await {
-        crit!(logger, "A critical error occured while running serenity client"; "reason" => format!("{:?}", why));
-        return Err(why.into());
-    }
-    info!(logger, "Client terminated with no errors, goodbye!");
+    let runtime = tokio::runtime::Runtime::new()?;
+    let client_thread = runtime.spawn(async move {
+        if let Err(why) = client.start().await {
+            crit!(logger, "A critical error occured while running serenity client"; "reason" => format!("{:?}", why));
+            return UResult::Err(why.into());
+        }
+        UResult::Ok(())
+    });
+
+    thread::scope(move |scope| -> UResult {
+        let _ = scope.spawn(move || -> UResult {
+            runtime.block_on(client_thread)??;
+            Ok(())
+        });
+        Ok(())
+    })?;
+
+    // if let Err(why) = client.start().await {
+    // crit!(logger, "A critical error occured while running serenity client"; "reason" => format!("{:?}", why));
+    // return Err(why.into());
+    // }
+    // info!(logger, "Client terminated with no errors, goodbye!");
     Ok(())
 }

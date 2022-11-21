@@ -1,5 +1,5 @@
-use serenity::prelude::*;
 use qcproto::prelude::*;
+use serenity::prelude::*;
 use std::collections::HashMap;
 use std::fmt::Display;
 
@@ -39,9 +39,9 @@ impl TypeMapKey for LoggersKey {
     type Value = HashMap<String, slog::Logger>;
 }
 
-pub use qcproto::*;
 pub use crate::commands::*;
 pub use crate::core::*;
 pub use crate::handler::*;
 pub use crate::utility::*;
+pub use qcproto::*;
 pub use slog::{crit, debug, error, info, warn};
