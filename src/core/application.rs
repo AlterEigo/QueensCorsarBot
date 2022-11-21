@@ -31,13 +31,6 @@ pub fn bootstrap_command_server(ctx: &BootstrapRequirements) -> UResult {
         command_dispatcher,
         ctx.logger.clone(),
     ));
-    // let stream_listener = Arc::new(
-    // StreamListener::<UnixListener>::new()
-    // .logger(ctx.logger.clone())
-    // .listener(UnixListener::bind(&srv_addr)?)
-    // .stream_handler(stream_handler)
-    // .build(),
-    // );
     let cmd_server = CommandServer::new()
         .logger(ctx.logger.clone())
         .server_addr(&srv_addr)
@@ -107,18 +100,25 @@ pub async fn bootstrap_application(ctx: BootstrapRequirements) -> UResult {
         "event handler" => "crate::Handler",
         "framework" => "StandardFramework");
 
-    let runtime = tokio::runtime::Runtime::new()?;
-    let client_thread = runtime.spawn(async move {
-        if let Err(why) = client.start().await {
-            crit!(ctx.logger, "A critical error occured while running serenity client"; "reason" => format!("{:?}", why));
-            return UResult::Err(why.into());
-        }
-        UResult::Ok(())
-    });
-
     thread::scope(move |scope| -> UResult {
+        let runtime = tokio::runtime::Runtime::new()?;
+
+        let logger = ctx.logger.clone();
+        let client_thread = runtime.spawn(async move {
+            if let Err(why) = client.start().await {
+                crit!(logger, "A critical error occured while running serenity client"; "reason" => format!("{:?}", why));
+                return UResult::Err(why.into());
+            }
+            UResult::Ok(())
+        });
+
         let _ = scope.spawn(move || -> UResult {
             runtime.block_on(client_thread)??;
+            Ok(())
+        });
+
+        let _ = scope.spawn(move || -> UResult {
+            let cmd_server = bootstrap_command_server(&ctx);
             Ok(())
         });
         Ok(())
