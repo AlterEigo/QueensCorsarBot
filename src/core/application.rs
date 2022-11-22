@@ -147,7 +147,7 @@ impl DsCommandHandler {
     }
 }
 
-pub fn bootstrap_command_server(ctx: &BootstrapRequirements, comm: Pipe<Context>) -> UResult {
+pub fn bootstrap_command_server(ctx: &BootstrapRequirements, comm: Pipe<Context>) -> UResult<CommandServer> {
     let srv_addr = format!(
         "{}",
         "/tmp/qcorsar.discord.sock".to_owned()
@@ -165,12 +165,11 @@ pub fn bootstrap_command_server(ctx: &BootstrapRequirements, comm: Pipe<Context>
         command_dispatcher,
         ctx.logger.clone(),
     ));
-    let cmd_server = CommandServer::new()
+    CommandServer::new()
         .logger(ctx.logger.clone())
         .server_addr(&srv_addr)
         .stream_handler(stream_handler)
-        .build()?;
-    cmd_server.listen()
+        .build()
 }
 
 pub async fn bootstrap_application(ctx: BootstrapRequirements) -> UResult {
@@ -242,8 +241,12 @@ pub async fn bootstrap_application(ctx: BootstrapRequirements) -> UResult {
         let client_thread = runtime.spawn(async move {
             {
                 let mut data = client.data.write().await;
-                let mut pipes = data.entry::<PipesKey<Context>>().or_insert(HashMap::new());
+                let pipes = data.entry::<PipesKey<Context>>().or_insert(HashMap::new());
                 pipes.insert("cmdserver".to_owned(), ds_side);
+
+                let senders = data.entry::<SendersKey>().or_insert(HashMap::new());
+                let sender = CommandSender::new("/tmp/qcorsar.tg.sock".to_owned());
+                senders.insert("tgsender".to_owned(), sender);
             }
             if let Err(why) = client.start().await {
                 crit!(logger, "A critical error occured while running serenity client"; "reason" => format!("{:?}", why));
@@ -257,9 +260,15 @@ pub async fn bootstrap_application(ctx: BootstrapRequirements) -> UResult {
             Ok(())
         });
 
+        let logger = ctx.logger.clone();
         let _ = scope.spawn(move || -> UResult {
-            let cmd_server = bootstrap_command_server(&ctx, cs_side);
-            Ok(())
+            let cmd_server = bootstrap_command_server(&ctx, cs_side)?;
+            if let Err(why) = cmd_server.listen() {
+                crit!(logger, "Command server failed to run correctly; reason: {:#?}", why);
+                Err(why.into())
+            } else {
+                Ok(())
+            }
         });
         Ok(())
     })?;
