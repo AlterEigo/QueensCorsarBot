@@ -6,14 +6,9 @@ mod handler;
 mod logger;
 mod prelude;
 mod utility;
+mod sender;
 
 use crate::prelude::*;
-use qcproto::prelude::*;
-use serenity::{framework::StandardFramework, model::prelude::*, Client};
-use slog::{crit, debug, info, Logger};
-use std::collections::HashMap;
-use std::sync::Arc;
-use std::thread;
 use crate::core::application;
 
 #[tokio::main]
