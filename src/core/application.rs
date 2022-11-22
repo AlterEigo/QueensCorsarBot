@@ -80,6 +80,12 @@ impl<ST, RT> Pipe<ST, RT>
     }
 }
 
+pub struct SendersKey;
+impl TypeMapKey for SendersKey {
+    type Value = HashMap<String, CommandSender>;
+}
+
+
 pub struct PipesKey<T>
     where for<'x> T: 'x + Send + Sync
 {
