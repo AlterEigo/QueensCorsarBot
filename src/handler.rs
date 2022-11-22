@@ -35,9 +35,17 @@ impl EventHandler for Handler {
             return;
         }
 
+        let author_fmt = {
+            let res = msg.author_nick(&ctx.http).await;
+            if let Some(nickname) = res {
+                format!("{} ({})", nickname, msg.author.name)
+            } else {
+                msg.author.name
+            }
+        };
         let cmd = Command {
             kind: CommandKind::ForwardMessage {
-                from: ActorInfos { server: "discord_server_id".to_owned(), name: msg.author.name },
+                from: ActorInfos { server: "discord_server_id".to_owned(), name: author_fmt },
                 to: ActorInfos { server: "telegram_server_id".to_owned(), name: Default::default() },
                 content: msg.content
             },
