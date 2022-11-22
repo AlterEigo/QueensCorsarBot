@@ -38,7 +38,7 @@ impl EventHandler for Handler {
         let author_fmt = {
             let res = msg.author_nick(&ctx.http).await;
             if let Some(nickname) = res {
-                format!("{} ({})", nickname, msg.author.name)
+                format!("{} \\({}\\)", nickname, msg.author.name)
             } else {
                 msg.author.name
             }
