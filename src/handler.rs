@@ -1,6 +1,7 @@
 use crate::prelude::*;
 use serenity::{model::prelude::*, prelude::*};
 use slog::o;
+use crate::application::PipesKey;
 
 use serenity::async_trait;
 
@@ -44,6 +45,14 @@ impl EventHandler for Handler {
             Ok(value) => value,
             Err(why) => panic!("Failed to retrieve the logger: {:#?}", why),
         };
+
+        let data = ctx.data.write().await;
+        let pipes = data.get::<PipesKey<Context>>().unwrap();
+        let pipe = pipes.get("cmdserver").unwrap();
+
+        if let Err(why) = pipe.send(ctx.clone()) {
+            error!(logger, "Could not send bot context via the provided pipe"; "reason" => format!("{:#?}", why));
+        }
 
         info!(
             logger,

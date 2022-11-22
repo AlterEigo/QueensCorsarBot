@@ -80,7 +80,7 @@ impl<ST, RT> Pipe<ST, RT>
     }
 }
 
-struct PipesKey<T>
+pub struct PipesKey<T>
     where for<'x> T: 'x + Send + Sync
 {
     phantom_t: PhantomData<T>
@@ -120,12 +120,12 @@ impl CommandHandler for DsCommandHandler {
                     .build();
                 channel.send_message(&ds_context.http, |m| {
                     m.content(msg_content)
-                });
+                }).await?;
                 UResult::Ok(())
             } else {
                 UResult::Err("".into())
             }
-        });
+        })??;
         // let _ = self.ds_context.http.send_message("1034419827525296191".parse::<u64>(), "");
         Ok(())
     }
