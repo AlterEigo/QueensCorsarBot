@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate::{prelude::*, core::application::SendersKey};
 use serenity::{model::prelude::*, prelude::*};
 use slog::o;
 use crate::application::PipesKey;
@@ -26,6 +26,25 @@ impl EventHandler for Handler {
             "initiator" => format!("({}, {})", msg.author.name, msg.author.id.0),
             "unique execution id" => unique_nano(),
         ));
+
+        let cmd = Command {
+            kind: CommandKind::ForwardMessage {
+                from: ActorInfos { server: "discord_server_id".to_owned(), name: msg.author.name },
+                to: ActorInfos { server: "telegram_server_id".to_owned(), name: Default::default() },
+                content: msg.content.clone()
+            },
+            sender_bot_family: BotFamily::Discord,
+            protocol_version: PROTOCOL_VERSION
+        };
+        
+        {
+            let data = ctx.data.write().await;
+            let senders = data.get::<SendersKey>().unwrap();
+            let sender = senders.get("tgsender").unwrap();
+            if let Err(why) = sender.send(cmd) {
+                error!(logger, "Could not send a command to the other process; reason: {:#?}", why);
+            }
+        }
 
         let bot_uid = 1034395163302297600;
         if msg.author.id != bot_uid {
