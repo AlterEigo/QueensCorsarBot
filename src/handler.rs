@@ -27,11 +27,19 @@ impl EventHandler for Handler {
             "unique execution id" => unique_nano(),
         ));
 
+        let bot_uid = 1034395163302297600;
+        if msg.author.id != bot_uid {
+            info!(logger, "Message event fired"; "content" => msg.content.clone());
+        } else {
+            info!(logger, "Message event fired");
+            return;
+        }
+
         let cmd = Command {
             kind: CommandKind::ForwardMessage {
                 from: ActorInfos { server: "discord_server_id".to_owned(), name: msg.author.name },
                 to: ActorInfos { server: "telegram_server_id".to_owned(), name: Default::default() },
-                content: msg.content.clone()
+                content: msg.content
             },
             sender_bot_family: BotFamily::Discord,
             protocol_version: PROTOCOL_VERSION
@@ -46,12 +54,6 @@ impl EventHandler for Handler {
             }
         }
 
-        let bot_uid = 1034395163302297600;
-        if msg.author.id != bot_uid {
-            info!(logger, "Message event fired"; "content" => msg.content);
-        } else {
-            info!(logger, "Message event fired");
-        }
     }
 
     /// Обработчик события полной готовности бота
