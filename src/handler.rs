@@ -35,6 +35,11 @@ impl EventHandler for Handler {
             return;
         }
 
+        let source_chat_id = 1034419827525296191 as u64;
+        if msg.channel_id != source_chat_id {
+            return;
+        }
+
         let author_fmt = {
             let res = msg.author_nick(&ctx.http).await;
             if let Some(nickname) = res {
