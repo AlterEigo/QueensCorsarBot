@@ -115,7 +115,7 @@ impl CommandHandler for DsCommandHandler {
         let ds_context = self.ds_context.clone();
         self.as_sync(async move {
             let guild = ds_context.http.get_guild(1032941443058241546).await?;
-            let channel_id = ChannelId(1034419827525296191);
+            let channel_id = ChannelId(1032942368015515708);
             let channels = guild.channels(&ds_context.http).await?;
             let channel = channels.get(&channel_id).unwrap();
             if let CommandKind::ForwardMessage { from, to: _, content } = msg.kind {

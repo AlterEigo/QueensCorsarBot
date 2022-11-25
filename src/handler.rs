@@ -35,7 +35,7 @@ impl EventHandler for Handler {
             return;
         }
 
-        let source_chat_id = 1034419827525296191 as u64;
+        let source_chat_id = 1032942368015515708 as u64;
         if msg.channel_id != source_chat_id {
             return;
         }
